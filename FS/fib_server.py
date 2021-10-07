@@ -5,13 +5,29 @@ import json
 
 app = Flask(__name__)
 
-@app.route('/register', method = ['PUT'])
-# def register():
-#     hostname = request.json['hostname']
-#     local_ip = request.json['ip']
-#     as_ip = request.json['as_ip']
-#     as_port = request.json['as_port']
-#     reg_udp(as_ip,as_port,f'TYPE:A\nNAME:{hostname}\nVALUE:{ip}\nTTL:10')
+def reg_udp(as_ip,as_port,register_message):
+    serverName = as_ip
+    serverPort = int(as_port)
+    clientSocket = socket(AF_INET, SOCK_DGRAM)
+    message = register_message
+    clientSocket.sendto(message.encode(),(serverName, serverPort)) 
+    resp_message, serverAddress = clientSocket.recvfrom(2048) 
+    app.logger.info(resp_message.decode())
+    clientSocket.close()
+    return resp_message
+
+@app.route('/register', methods = ['PUT'])
+def register():
+    hostname = request.json['hostname']
+    register_ip = request.json['ip']
+    as_ip = request.json['as_ip']
+    as_port = request.json['as_port']
+    dns_type = 'A'
+    resp_message = reg_udp(as_ip,as_port,f'TYPE:{dns_type}\nNAME:{hostname}\nVALUE:{register_ip}\nTTL:10')
+    app.logger.info(resp_message)
+    resp = make_response(resp_message)
+    app.logger.info(resp)
+    return resp,201
 
 @app.route('/fibonacci')
 def fib_num():
@@ -37,16 +53,6 @@ class Fibonacci(object):
     def sequence(self, n):
         self.__compute(n)
         return self._results[n-1]
-
-def reg_udp(as_ip,as_port,message):
-    serverName = as_ip
-    serverPort = as_port
-    clientSocket = socket(AF_INET, SOCK_DGRAM)
-    message = mess
-    clientSocket.sendto(message.encode(),(serverName, serverPort)) 
-    modifiedMessage, serverAddress = clientSocket.recvfrom(2048) 
-    print(modifiedMessage.decode())
-    clientSocket.close()
 
 app.run(host='0.0.0.0',
         port=9090,

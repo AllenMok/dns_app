@@ -31,6 +31,7 @@ def fib():
     dns_type = 'A'
     query_info = f'TYPE={dns_type}\nNAME={hostname}'
     fs_info = query_ip(as_ip,as_port,query_info)
+    app.logger.info(fs_info)
     fs_ip_resp = fs_info.split()[2][6:]
     fib_resp = requests.get(f'http://{fs_ip_resp}:{fs_port}/fibonacci?number={num}')
     return fib_resp.text, 200

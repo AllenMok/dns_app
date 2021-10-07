@@ -6,9 +6,12 @@ serverSocket.bind(('', serverPort))
 print("This server is ready to receive")
 
 def reg_host(rev_message):
-    f = open('host.txt','a',encoding='utf-8')
-    f.write(f'{rev_message[1]},{rev_message[2]}\n')
-    return f'host{rev_message[1]} mapping to ip address {rev_message[2]} now'
+    print(rev_message)
+    rev_hostname = rev_message[1].split(':')[1]
+    rev_ip = rev_message[2].split(':')[1]
+    f = open('hosts.txt','a',encoding='utf-8')
+    f.write(f'{rev_hostname},{rev_ip}\n')
+    return f'host: {rev_hostname} has mapped to ip address {rev_ip}'
 
 def query_address(rev_message):
     hosts_file = open('hosts.txt','r',encoding='utf-8')
@@ -24,7 +27,8 @@ while True:
     message, clientAddress = serverSocket.recvfrom(2048)
     rev_message = message.decode().split()
     if len(rev_message) == 4: 
-        sendback = reg_host()
+        sendback = reg_host(rev_message)
+        print(sendback)
     elif len(rev_message) == 2:
         sendback = query_address(rev_message)
         print(sendback)
