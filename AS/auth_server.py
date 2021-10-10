@@ -2,35 +2,36 @@ from socket import *
 
 serverPort = 53533
 serverSocket = socket(AF_INET, SOCK_DGRAM) 
-serverSocket.bind(('', serverPort)) 
+serverSocket.bind(('', serverPort))
+TTL = 1
 print("This server is ready to receive")
 
-def reg_host(rev_message):
-    print(rev_message)
-    rev_hostname = rev_message[1].split(':')[1]
-    rev_ip = rev_message[2].split(':')[1]
+def reg_host(recv_message):
+    print(recv_message)
+    recv_hostname = recv_message[1].split(':')[1]
+    recv_ip = recv_message[2].split(':')[1]
     f = open('hosts.txt','a',encoding='utf-8')
-    f.write(f'{rev_hostname},{rev_ip}\n')
-    return f'host: {rev_hostname} has mapped to ip address {rev_ip}'
+    f.write(f'{recv_hostname},{recv_ip}\n')
+    return f'host: {recv_hostname} has mapped to ip address {recv_ip}'
 
-def query_address(rev_message):
+def query_address(recv_message):
     hosts_file = open('hosts.txt','r',encoding='utf-8')
     lines = hosts_file.readlines()
-    rev_hostname = rev_message[1].split('=')[1]
-    rev_type = rev_message[0].split('=')[1]
+    recv_hostname = recv_message[1].split('=')[1]
+    recv_type = recv_message[0].split('=')[1]
     for line in lines:
         host_map = line.split(',')
-        if host_map[0] == rev_hostname:
-            return f'TYPE={rev_type}\nNAME={rev_hostname}\nVALUE={host_map[1]}\nTTL={10}'
+        if host_map[0] == recv_hostname:
+            return f'TYPE={recv_type}\nNAME={recv_hostname}\nVALUE={host_map[1].strip()}\nTTL={10}'
 
 while True:
     message, clientAddress = serverSocket.recvfrom(2048)
-    rev_message = message.decode().split()
-    if len(rev_message) == 4: 
-        sendback = reg_host(rev_message)
+    recv_message = message.decode().split()
+    if len(recv_message) == 4: 
+        sendback = reg_host(recv_message)
         print(sendback)
-    elif len(rev_message) == 2:
-        sendback = query_address(rev_message)
+    elif len(recv_message) == 2:
+        sendback = query_address(recv_message)
         print(sendback)
     else:
         break
