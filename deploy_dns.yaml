@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab3-yihan-mo
+  labels:
+    app: web
+spec:
+  containers:
+  - name: user-server
+    image: docker.io/allenmok/dns-app-us
+    ports:
+      containerPort: 8080
+      hostPort: 30003
+  - name: fibonacci-server
+    image: docker.io/allenmok/dns-app-fs
+    ports:
+      containerPort: 9090
+      hostPort: 30002
+  - name: auth-server
+    image: docker.io/allenmok/dns-app-as
+    ports:
+      containerPort: 53533
+      hostPort: 30001
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - web
+                topologyKey: kubernetes.io/hostname
